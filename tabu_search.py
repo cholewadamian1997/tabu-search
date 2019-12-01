@@ -16,6 +16,7 @@ def create_new__rand_solutionsList(solution, amount_of_solutions):
     "generuje liste rozwiązań w każdym jest jedna zmiana w stosunku do podanego wszystkie są od siebie różne "
 
     new_solution_List = np.array([])
+    changed_elem_List = np.array([])
 
     for x in range(0, amount_of_solutions):
         first = np.random.random_integers(np.len(solution))
@@ -25,13 +26,17 @@ def create_new__rand_solutionsList(solution, amount_of_solutions):
 
         new_solution = solution
         new_solution[first], new_solution[second] = new_solution[second], new_solution[first]
-        if np.isin(new_solution_List, new_solution):
-            new_solution_List.append(new_solution)
+        changed_elem = np.array([first, second])
 
-    return new_solution_List
+        if np.isin(new_solution_List, new_solution):
+            new_solution_List.append(new_solution_tuple)
+        if np.isin(changed_elem_List, changed_elem):
+            changed_elem_List.append(changed_elem)
+    new_solution_tuple = (new_solution_List, changed_elem_List)
+    return new_solution_tuple
 
 def tabu_search(first_solution, iterations, tabu_list_size):
-    """szkielet na główną funkcje"""
+
 
     solution = first_solution
     tabu_list = np.array([])
@@ -48,11 +53,3 @@ def tabu_search(first_solution, iterations, tabu_list_size):
         count = count + 1
 
     return best_solution_ever, best_time
-
-
-
-
-
-
-
-
