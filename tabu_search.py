@@ -24,16 +24,18 @@ def create_new__rand_solutionsList(solution, amount_of_solutions):
         while first == second:
             first = random.randrange(len(solution))
 
-        new_solution = solution
-        new_solution[first], new_solution[second] = new_solution[second], new_solution[first]
+        temp_solution = copy.copy(solution)
+        print(temp_solution)
+        temp_solution[first], temp_solution[second] = temp_solution[second], temp_solution[first]
         changed_elem = [first, second]
+        new_solution = copy.copy(temp_solution)
+        "sprawdzam czy nowe rozw spełnia ograniczenia(ratusz)"
 
         if new_solution not in new_solution_List:
             new_solution_List.append(new_solution)
         if changed_elem not in changed_elem_List:
             changed_elem_List.append(changed_elem)
-    new_solution_tuple = (new_solution_List, changed_elem_List)
-    return new_solution_tuple
+        print(new_solution)
 
 def tabu_search(first_solution, iterations, tabu_list_size):
 
