@@ -1,0 +1,8 @@
+from simulation_process import generate_solution_time
+from tabu_search import tabu_search, generate_first_solution
+
+first_solution = generate_first_solution()
+
+
+print(tabu_search(first_solution, 200, 5))
+
