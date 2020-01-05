@@ -1,302 +1,297 @@
+port random
+import copy
 import numpy as np
+from pprint import pprint
+from data import materials_requirements, max_population, time_requirements
 
 
-"drew, cegł, żel, ludzie_zap, ludzie_ogr"
-zagroda = np.array([[45,	40,		30, 0,	240],
-                    [59,	53,		39, 0,  281],
-                    [76,	70,		50,	0,	329],
-                    [99,	92,		64,	0,	386],
-                    [129,	12,		183,0,	452],
-                    [167,	16,		107,0,	530],
-                    [217,	21,		138,0,	622],
-                    [282,	27,		178,0,	729],
-                    [367,	36,		230,0,	854],
-                    [477,	48,		297,0,	1002],
-                    [620,	64,		383,0,	1174],
-                    [806,	84,		494,0,	1376],
-                    [1048,	1119,	637,0,	1613],
-                    [1363,	1477,	822,0,	1891],
-                    [1772,	1950,	1060,0,	2216],
-                    [2303,	2574,	1368,0,	2598],
-                    [2994,	3398,	1764,0,	3045],
-                    [3893,	4486,	2276,0,	3569],
-                    [5060,	5921,	2936,0,	4183],
-                    [6579,	7816,	3787,0,	4904],
-                    [8525,	10317,	4886,0,	5748],
-                    [11118,	13618,	6302,0,	6737],
-                    [14453,	17976,	8130,0,	7896],
-                    [18789,	23728,	10488,0,9255],
-                    [24426,	31321,	13529,0,10848]])
+def calculate_filling_time(vector_of_materials, vector_of_requirements, state_of_buildings):
 
-"drew, cegł, żel, ludzie_zap, surkinagodz*0.5"
-cegielnia = np.array([[65,	    50,		40,		10,		15],
-                     [83,	    63,		50,		11,		17],
-                     [105,	    80,		62,		13,		20],
-                     [133,	    101,	76,		15,		23],
-                     [169,	    128,	95,		17,		27],
-                     [215,	    162,	117,	19,		32],
-                     [273,	    205,	145,	22,		37],
-                     [346,	    259,	180,	25,		43],
-                     [440,	    328,	224,	29,		50],
-                 [559,	    415,	277,	33,		58],
-                 [709,	    525,	344,	37,		68],
-                 [901,	    664,	426,	42,		79],
-                 [1144,	    840,	529,	48,		92],
-                 [1453,	    1062,	655,	55,		107],
-                 [1846,	    1343,	813,	63,		124],
-                 [2344,	    1700,	1008,	71,		144],
-                 [2977,	    2150,	1250,	81,		168],
-                 [3781,	    2720,	1550,	93,		195],
-                 [4802,	    3440,	1922,	103,	227],
-                 [6098,	    4352,	2383,	121,	265],
-                 [7744,	    5505,	2955,	137,	308],
-                 [9835,	    6964,	3664,	157,	358],
-                 [12491,	8810,	4543,	179,	416],
-                 [15863,	11144,	5633,	204,	484],
-                 [20147,    140089, 6985, 232, 563]])
-
-"drew, cegł, żel, ludzie_zap, surkinagodz*0.5"
-huta = np.array([[75,65,	70,	10,	15],
-[94,	83,	87,	12,	17],
-[118,	106,	108,	14,	20],
-[147,	135,	133,	16,	23],
-[184,	172,165,	19,	27],
-[231,	219,205,	22,	32],
-[289,	279,	254,	26,	37],
-[362,	352,	316	,30,43],
-[453,	454,	391,	35,	50],
-[567,	579,	485,	41,	58],
-[710,	738,	602,	48,	78],
-[889,	941,	746,	56,	89],
-[1113,	1200,	925,	66,	92],
-[1393,	1529,	1147,	77,	107],
-[1744,	1950,	1422,	90,	124],
-[2183,	2486,	1764,	105,144],
-[2734,	3170,	2187,	123,	168],
-[3422,	4042,	2712,	144,	195],
-[4285,	5153,	3363,	169,	227],
-[5365,	6571,	4170,	197,	265],
-[6717,	8378,	5170,	231,	308],
-[8409,	10681,	6411,	270	,358],
-[10528	,13619,	7950,	316	,416],
-[13181,	17364,	9858,	370	,484],
-[15503,	22139,	12224,	433,	563]
-])
-
-"""
-x-  6 elementowy wektor  stanu reprezentujący poziomy poszczególnych budynków
-x0 - poziom ratusza
-x1 - poziom tartaku
-x2 - poziom ciegielni
-x3 - poziom huty żelaza
-x4 - poziom zagrody
-x5 - poziom spichlerza
-"""
-x = np.array([0, 0, 0, 0, 0, 0])
-
-" wektor zasobów"
-zasoby = [300, 300, 300, 300]
-
-"""
-tartak  - macierz określa zapotrzebowanie  do budowy kolejnych poziomów ratusza
-stopien | drewno | cegła | żelazo | pracownicy | współczynnik czasowy     
-"""
-ratusz = np.array([[90, 80, 70, 5],
-                 [113, 102, 88, 6, 91],
-                 [143, 130, 111, 7, 86],
-                 [180, 166, 140, 8, 82],
-                 [227, 211, 176, 9, 78],
-                 [286, 270, 222, 11, 75],
-                 [360, 344, 280, 13, 71],
-                 [454, 438, 353, 15, 68],
-                 [572, 559, 445, 18, 64],
-                 [720, 712, 560, 21, 61],
-                 [908, 908, 706, 24, 58],
-                 [1144, 1158, 890, 28, 56],
-                 [1441, 1476, 1121, 33, 53],
-                 [1816, 1882, 1412, 38, 51],
-                 [2288, 2400, 1779, 45, 48],
-                 [2883, 3060, 2242, 53, 46],
-                 [3632, 3902, 2825, 62, 44],
-                 [4577, 4975, 3560, 72, 42],
-                 [5767, 6343, 4485, 84, 40],
-                 [7266, 8087, 5651, 99, 38],
-                 [9155, 10311, 7120, 116, 36],
-                 [11535, 13146, 8972, 135, 34],
-                 [14534, 16762, 11304, 158, 33],
-                 [18313, 21371, 14244, 185, 31],
-                 [23075, 27248, 17947, 216, 30]])
+    final_time = 0
+    for i in range(len(vector_of_materials)):
+        if vector_of_requirements[i] > vector_of_materials[i]:
+            temp_time = (vector_of_requirements[i] - vector_of_materials[i]) / (materials_requirements[i + 2][state_of_buildings[i + 2]][4] / 30)
+            if temp_time > final_time:
+                final_time = temp_time
+    return final_time
 
 
-tartak = np.array([[50,		60,	    40,	   	5,		15,		30,	  	60,		48],
-                   [63,		77,	    50,	   	6,		17,		35,	  	70,		56],
-                   [78,		98,	    63,	   	7,		20,		41,	  	81,		65],
-                   [98,		124,	77,	   	8,		23,		47,	  	94,		76],
-                   [122,	159,    96,	   	9,		27,		55,	  	110,	88],
-                   [153,	202,	120,	10,		32,		64,	  	128,	102],
-                   [191,	258,	149,	12,		37,		74,	  	149,	119],
-                   [238,	329,	185,	14,		43,		86,	  	173,	138],
-                   [298,	419,	231,	16,		50,		100,	201,	161],
-                   [373,	534,	287,	18,		58,		117,	234,	187],
-                   [466,	681,	358,	21,		68,		136,	272,	218],
-                   [582,	868,	446,	24,		79,		158,	316,	253],
-                   [728,	1107,	555,    28,		92,		184,	368,	294],
-                   [909,	1412,	691,    33,		107,	214,	428,	342],
-                   [1137,	1800,	860,    38,		124,	249,	498,	398],
-                   [1421,	2295,	1071,   43,		144,	289,	579,	463],
-                   [1776,	2926,	1333,   50,		168,	337,	673,	539],
-                   [2220,	3731,	1659,   58,		145,	391,	783,	626],
-                   [2776,	4757,	2066,   67,		227,	455,	911,	729],
-                   [3469,	6065,	2572,   77,		265,	530,	1059,	847],
-                   [4337,	7733,	3202,   89,		308,	616,	1232,	986],
-                   [5421,	9860,	3987,   103,	358,	717,	1433,	1146],
-                   [6776,	12571,	4963,   119,	416,	833,	1667,	1333],
-                   [8470,	16028,	6180,   138,	484,	969,	1939,	1551],
-                   [1058,	20436,	7694,   159,	563,	1127,  	2255,	1804]])
+def generate_time_of_solution(solution) -> int:
+
+    current_state_of_buildings = [1, 1, 1, 1, 1, 1]
+    current_state_of_materials = [100, 100, 100]
+    time = 0
+    for step in solution: #step to liczba odpowiadająca jakiemuś budynkowi (np 3) (index wektora stanu)
+
+        current_number_of_workers = 0
+        for i in range(len(current_state_of_buildings)):
+            current_number_of_workers = current_number_of_workers + materials_requirements[i][current_state_of_buildings[i]][3]
+
+        "---------------------------------------------"
+        if current_number_of_workers > max_population[current_state_of_buildings[5]]:
+            return 1000000000000000
+        #Jeśli jest za mało ludzi to skończ i odrzuć rozwiązanie
+
+        materials_check = True #Czy jest wystarczająco surowców
+        if min(np.subtract(current_state_of_materials, materials_requirements[step][current_state_of_buildings[step]][:3])) < 0:
+            materials_check = False
+
+        #print(materials_check)
+
+        if not materials_check:
+            filling_time = calculate_filling_time(current_state_of_materials, materials_requirements[step][current_state_of_buildings[step]], current_state_of_buildings)
+
+            #print(filling_time)
+            #print("---")
+
+            for i in range(len(current_state_of_materials)):
+                current_state_of_materials[i] = current_state_of_materials[i] + (materials_requirements[i + 2][current_state_of_buildings[i + 2]][4] / 30) * filling_time
+                #Dlatego i + 2 bo w wektorze stanu budynki z surowcami są na miejscu 3 - 6, a stanu surowców 1 - 4
+
+            time = time + filling_time
+
+        current_state_of_materials = np.subtract(current_state_of_materials, materials_requirements[step][current_state_of_buildings[step]][:3])
+
+        for i in range(len(current_state_of_materials)): #Dodawanie materiałów
+            current_state_of_materials[i] = current_state_of_materials[i] + (materials_requirements[i + 2][current_state_of_buildings[i + 2]][4] / 30) * time_requirements[current_state_of_buildings[step]][step]
+            #nie wiem w jakiej formie mamy zapisane dane dot czasu budowy więc jest na razie roboczo
 
 
-cegielnia = np.array([[65,	    50,	    40,		10,		15,	 	30,		60,		48],
-                     [83,	    63,	    50,		11,		17,	 	35,		70,		56],
-                     [105,	    80, 	62,		13,		20,	 	41,		81,		65],
-                     [133,	    101,	76,		15,		23,	 	47,		94,		76],
-                     [169,	    128,	95,		17,		27,	 	55,		110,	88],
-                     [215,	    162,	117,	19,		32,	 	64,		128,	102],
-                     [273,	    205,	145,	22,		37,	 	74,		149,	119],
-                     [346,	    259,	180,	25,		43,	 	86,		173,	138],
-                     [440,	    328,	224,	29,		50,	 	100,	201,	161],
-                     [559,	    415,	277,	33,		58,	 	117,	234,	187],
-                     [709,	    525,	344,	37,		68,	 	136,	272,	218],
-                     [901,	    664,	426,	42,		79,	 	158,	316,	253],
-                     [1144,	    840,	529,	48,		92,	 	184,	368,	294],
-                     [1453,	    1062,	655,	55,		107,  	214,	428,	342],
-                     [1846,	    1343,	813,	63,		124,  	249,	498,	398],
-                     [2344,	    1700,	1008,	71,		144,  	289,	579,	463],
-                     [2977,	    2150,	1250,	81,		168,  	337,	673,	539],
-                     [3781,	    2720,	1550,	93,		195,  	391,	783,	626],
-                     [4802,	    3440,	1922,	103,	227,  	455,	911,	729],
-                     [6098,	    4352,	2383,	121,	265,  	530,	1059,	847],
-                     [7744,	    5505,	2955,	137,	308,  	616,	1232,	986],
-                     [9835,	    6964,	3664,	157,	358,  	717,	1433,	1146],
-                     [12491,	8810,	4543,	179,	416,  	833,	1667,	1333],
-                     [15863,	11144,	5633,	204,	484,  	969,	1939,	1551],
-                     [20147,	14098,	6985,	232,	563,  	1127,	2255,	1804]])
+        current_state_of_buildings[step] = current_state_of_buildings[step] + 1
 
-huta = np.array([[65,	    50,		40,		10,		15,		30,		60,		48],
-                 [83,	    63,		50,		11,		17,		35,		70,		56],
-                 [105,	    80,		62,		13,		20,		41,		81,		65],
-                 [133,	    101,	76,		15,		23,		47,		94,		76],
-                 [169,	    128,	95,		17,		27,		55,		110,	88],
-                 [215,	    162,	117,	19,		32,		64,		128,	102],
-                 [273,	    205,	145,	22,		37,		74,		149,	119],
-                 [346,	    259,	180,	25,		43,		86,		173,	138],
-                 [440,	    328,	224,	29,		50,		100,	201,	161],
-                 [559,	    415,	277,	33,		58,		117,	234,	187],
-                 [709,	    525,	344,	37,		68,		136,	272,	218],
-                 [901,	    664,	426,	42,		79,		158,	316,	253],
-                 [1144,	    840,	529,	48,		92,		184,	368,	294],
-                 [1453,	    1062,	655,	55,		107,	214,	428,	342],
-                 [1846,	    1343,	813,	63,		124,	249,	498,	398],
-                 [2344,	    1700,	1008,	71,		144,	289,	579,	463],
-                 [2977,	    2150,	1250,	81,		168,	337,	673,	539],
-                 [3781,	    2720,	1550,	93,		195,	391,	783,	626],
-                 [4802,	    3440,	1922,	103,	227,	455,	911,	729],
-                 [6098,	    4352,	2383,	121,	265,	530,	1059,	847],
-                 [7744,	    5505,	2955,	137,	308,	616,	1232,	986],
-                 [9835,	    6964,	3664,	157,	358,	717,	1433,	1146],
-                 [12491,	8810,	4543,	179,	416,	833,	1667,	1333],
-                 [15863,	11144,	5633,	204,	484,	969,	1939,	1551],
-                 [20147,	14098,	6985,	232,	563,	1127,	2255,	1804]])
+    return time
 
 
-zagroda = np.array([[45,	40,		30,		240],
-                    [59,	53,		39,		281],
-                    [76,	70,		50,		329],
-                    [99,	92,		64,		386],
-                    [129,	12,		183,	452],
-                    [167,	16,		107,	530],
-                    [217,	21,		138,	622],
-                    [282,	27,		178,	729],
-                    [367,	36,		230,	854],
-                    [477,	48,		297,	1002],
-                    [620,	64,		383,	1174],
-                    [806,	84,		494,	1376],
-                    [1048,	1119,	637,	1613],
-                    [1363,	1477,	822,	1891],
-                    [1772,	1950,	1060,	2216],
-                    [2303,	2574,	1368,	2598],
-                    [2994,	3398,	1764,	3045],
-                    [3893,	4486,	2276,	3569],
-                    [5060,	5921,	2936,	4183],
-                    [6579,	7816,	3787,	4904],
-                    [8525,	10317,	4886,	5748],
-                    [11118,	13618,	6302,	6737],
-                    [14453,	17976,	8130,	7896],
-                    [18789,	23728,	10488,	9255],
-                    [24426,	31321,	13529,	10848]])
+def generate_first_solution():
+    """generuje pierwsze rozwiązanie, taka forma żeby było że ten ratusz jest pierwszy zawsze """
+
+    first_solution = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
+    return first_solution
 
 
-spichlerz = np.array([[76,	    64,		50,		1229],
-                      [96,	    81,		62,		1512],
-                      [121,	    102, 	77,		1859],
-                      [154,	    130, 	96,		2285],
-                      [194,	    165, 	120,	2810],
-                      [246,	    210, 	149,	3454],
-                      [311,	    266, 	185,	4247],
-                      [393,	    338, 	231,	5222],
-                      [498,	    430, 	287,	6420],
-                      [630,	    546, 	358,	7893],
-                      [796,	    693, 	446,	9705],
-                      [1007,	880, 	555,	11932],
-                      [1274,	1180,	691,	14670],
-                      [1612,	1420,	860,	18037],
-                      [2039,	1803,	1071,	22177],
-                      [2580,	2290,	1333,	27266],
-                      [3264,	2908,	1659,	33523],
-                      [4128,	3693,	2066,	41217],
-                      [5222,	4691,	2572,	50675],
-                      [6606,	5957,	3202,	62305],
-                      [8357,	7599,	3987,	76604],
-                      [10572,	9608,	4963,	94184],
-                      [13373,	12203,	6180,	115798],
-                      [16917,	15497,	7694,	142373]])
+def is_solution_acceptable(new_solution):
+    levelList = [0,0,0,0,0,0]
+    for x in new_solution:
+        levelList[x] += 1
+        if levelList[0] < levelList[1] or levelList[0] < levelList[2] or levelList[0] < levelList[3]or levelList[0] < levelList[4]or levelList[0] < levelList[5]:
+            return False
+    return True
 
-x = np.array([0, 0, 0, 0, 0, 0])
 
-"""
-x0_demand  - macierz określa zapotrzebowanie  do budowy kolejnych poziomów ratusza
-stopien | drewno | cegła | żelazo | pracownicy
-   1    |        |       |        | 
-   2    |        |       |        |  
-  ...   |        |       |        |  
-   25   |        |       |        |                
-"""
+def create_new__rand_solutionsList(solution, amount_of_solutions):
+    "generuje liste rozwiązań w każdym jest jedna zmiana w stosunku do podanego wszystkie są od siebie różne "
 
-x0_demand = np.array([[90, 80, 70, 5],
-                     [113, 102, 88, 6, 91],
-                     [143, 130, 111, 7, 86],
-                     [180, 166, 140, 8, 82],
-                     [227, 211, 176, 9, 78],
-                     [286, 270, 222, 11, 75],
-                     [360, 344, 280, 13, 71],
-                     [454, 438, 353, 15, 68],
-                     [572, 559, 445, 18, 64],
-                     [720, 712, 560, 21, 61],
-                     [908, 908, 706, 24, 58],
-                     [1144, 1158, 890, 28, 56],
-                     [1441, 1476, 1121, 33, 53],
-                     [1816, 1882, 1412, 38, 51],
-                     [2288, 2400, 1779, 45, 48],
-                     [2883, 3060, 2242, 53, 46],
-                     [3632, 3902, 2825, 62, 44],
-                     [4577, 4975, 3560, 72, 42],
-                     [5767, 6343, 4485, 84, 40],
-                     [7266, 8087, 5651, 99, 38],
-                     [9155, 10311, 7120, 116, 36],
-                     [11535, 13146, 8972, 135, 34],
-                     [14534, 16762, 11304, 158, 33],
-                     [18313, 21371, 14244, 185, 31],
-                     [23075, 27248, 17947, 216, 30]])
+    new_solution_List = []
+    changed_elem_List = []
+    i = 0
+    for x in range(0, amount_of_solutions):
+        i += 1
+        first = random.randrange(len(solution))
+        second = random.randrange(len(solution))
+        while first == second:
+            first = random.randrange(len(solution))
 
+        temp_solution = copy.copy(solution)
+        temp_solution[first], temp_solution[second] = temp_solution[second], temp_solution[first]
+        changed_elem = [first, second]
+
+        "sprawdzam czy nowe rozw spełnia ograniczenia(ratusz)"
+        if is_solution_acceptable(temp_solution):
+            new_solution = copy.copy(temp_solution)
+            if new_solution not in new_solution_List:
+                new_solution_List.append(new_solution)
+            else:
+                x -= 1
+            if changed_elem not in changed_elem_List:
+                changed_elem_List.append(changed_elem)
+            else:
+                x -= 1
+
+        else:
+            x -= 1
+        if i >= 2 * amount_of_solutions:
+            break
+
+    return new_solution_List, changed_elem_List
+
+
+def tabu_search(first_solution, iterations, tabu_list_size):
+
+    solution = first_solution
+    print("first solution: ", solution)
+    tabu_list = list()
+    best_time_ever = generate_time_of_solution(solution)
+    print("best_time_ever: ", best_time_ever)
+    best_solution_ever = solution
+
+    count = 0
+    while count <= iterations:
+
+        available_solutions, changing_pairs_list = create_new__rand_solutionsList(first_solution, 40)
+        best_solution_index = 0
+        best_solution = available_solutions[0]
+        best_solution_time = generate_time_of_solution(best_solution)
+        forbidden_solution_list = list()
+
+        for i in range(1, len(available_solutions)): # zaczynamy od 1 bo rozwiazanie z indexem zerowym jest punktem wyjscia
+            current_solution = available_solutions[i]
+            if generate_time_of_solution(current_solution) < best_solution_time:
+                best_solution = current_solution
+                best_solution_time = generate_time_of_solution(current_solution)
+                best_solution_index = i
+
+        found = False
+        while not found:
+
+            if changing_pairs_list[best_solution_index] not in tabu_list:
+                tabu_list.append(changing_pairs_list[best_solution_index])
+                found = True
+                if best_solution_time < best_time_ever:
+                    best_time_ever = best_solution_time
+                    best_solution_ever = best_solution
+
+            else:
+                forbidden_solution_list.append(best_solution)
+                for i in range(1, len(available_solutions)):
+                    current_solution = available_solutions[i]
+                    if generate_time_of_solution(current_solution) < best_solution_time and current_solution not in forbidden_solution_list:
+                        best_solution = current_solution
+                        best_solution_time = generate_time_of_solution(current_solution)
+                        best_solution_index = i
+
+        if len(tabu_list) >= tabu_list_size:
+            tabu_list.pop(0)
+
+        count = count + 1
+        print("current best solution: ", best_solution_ever, "time: ", best_time_ever)
+
+    return best_solution_ever, best_time_ever
+
+
+class RecentlyUsedSolution:
+    """Class used for storing previous solutions
+
+    attributes
+    -------
+    _recent_solution : list
+        list of recent solution
+
+    """
+    def __init__(self):
+        self._recent_solution = list()
+
+    def check_if_used(self, solution, generations=3):
+        """Method used for checking if given solution was found before
+
+        Parameters
+        ----------
+        solution : list
+            list representing solution
+
+        generations: int
+            number of how many previous solutions will be consider
+
+        Returns
+        -------
+        bool
+            True if solution was found before, False otherwise
+        """
+
+        if len(self._recent_solution) < generations:
+            pass    # Error codes ???
+
+        if solution in self._recent_solution[-generations:]:
+            return True
+        else:
+            return False
+
+    def add(self, solution):
+        """ Appending solution to list
+
+        Parameters
+        ---------
+        solution: list
+            list representing solution
+        """
+        self._recent_solution.append(solution)
+
+    def check_progress(self, time_const, generations):
+        """ Checking if solutions were decreasing in given generations more than given time_const
+        Parameters
+        ----------
+        time_const: float
+            value of time needed to be consider if solutions are decreasing
+
+        generations: int
+            number of how many previous solution will be consider
+
+        Returns
+        -------
+        bool
+            True if progress exist, False otherwise
+        """
+
+        if len(self._recent_solution) < generations:
+            pass    # Error codes ???
+        used = self._recent_solution[-generations:]
+
+        progress = True
+        for i in range(len(used)-1):
+            if used[i] - time_const < used[i+1]:
+                progress = False
+            else:
+                continue
+
+        # ToDO: other rules to check progress ?
+        return progress
+
+    def check_diversity(self, generations):
+        """
+        Check if diversity is present in search process
+
+        Parameters
+         ---------
+        generations: int
+            number of how many previous solutions will be consider
+
+        Return:
+        --------
+        bool
+            True if diversity is present in search process, False otherwise
+        """
+        if len(self._recent_solution) < generations:
+            pass    # Error codes ???
+        used = self._recent_solution[-generations:]
+
+        diversity = True
+        changes_list = list()
+        for i in range(len(used[0])):
+            changes_counter = 0
+            for j in range(len(used)-1):
+                if used[j][i] != used[j+1][i]:
+                    changes_counter += 1
+
+            changes_list.append(changes_counter)
+
+        # ToDO: if statement for checking changes list and setting diversity variable
+
+        return diversity
+
+
+if __name__ == '__main__':
+
+    # first solution - OK! :
+    first_solution = generate_first_solution()
+    # print(first_solution)
+
+    # create list of neighbours
+    # neighbours = create_new__rand_solutionsList(first_solution, 100)
+    # for neighbour in neighbours[0]:
+    #     print(neighbour)
+
+    best_solution, best_time = tabu_search(first_solution, 40, 40)
+    print("best solution: ", best_solution)
+    print("best time after all: ", best_time)
 
 
 
