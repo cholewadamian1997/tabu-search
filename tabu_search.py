@@ -24,8 +24,9 @@ def create_new__rand_solutionsList(solution, amount_of_solutions):
 
     new_solution_List = []
     changed_elem_List = []
-
+    i = 0
     for x in range(0, amount_of_solutions):
+        i += 1
         first = random.randrange(len(solution))
         second = random.randrange(len(solution))
         while first == second:
@@ -40,16 +41,22 @@ def create_new__rand_solutionsList(solution, amount_of_solutions):
             new_solution = copy.copy(temp_solution)
             if new_solution not in new_solution_List:
                 new_solution_List.append(new_solution)
+            else:
+                x -= 1
             if changed_elem not in changed_elem_List:
                 changed_elem_List.append(changed_elem)
+            else:
+                x -= 1
 
         else:
             x -= 1
-
+        if i >= 2 * amount_of_solutions:
+            break
 
 
 
     new_solution_tuple = (new_solution_List, changed_elem_List)
+    
     return new_solution_tuple
 
 
