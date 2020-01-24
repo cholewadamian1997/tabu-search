@@ -2,6 +2,7 @@ import numpy as np
 
 import random
 import copy
+import matplotlib.pyplot as plt
 
 
 from data import materials_requirements, max_population, time_requirements
@@ -23,6 +24,10 @@ def generate_solution_time(solution) -> int:
     current_state_of_buildings = [1, 1, 1, 1, 1, 1]
     current_state_of_materials = [100, 100, 100]
     time = 0
+
+    final_list_of_wood = []
+    final_list_of_brick = []
+    final_list_of_iron = []
     for step in solution: #step to liczba odpowiadająca jakiemuś budynkowi (np 3) (index wektora stanu)
 
         current_number_of_workers = 0
@@ -52,6 +57,11 @@ def generate_solution_time(solution) -> int:
 
             time = time + filling_time
 
+        temp_materials = copy.copy(current_state_of_materials)
+        final_list_of_wood.append(temp_materials[0])
+        final_list_of_brick.append(temp_materials[1])
+        final_list_of_iron.append(temp_materials[2])
+
         current_state_of_materials = np.subtract(current_state_of_materials, materials_requirements[step][current_state_of_buildings[step]][:3])
 
         for i in range(len(current_state_of_materials)): #Dodawanie materiałów
@@ -59,15 +69,17 @@ def generate_solution_time(solution) -> int:
             #nie wiem w jakiej formie mamy zapisane dane dot czasu budowy więc jest na razie roboczo
 
 
-        current_state_of_buildings[step] = current_state_of_buildings[step] + 1
 
-    return time
+        current_state_of_buildings[step] = current_state_of_buildings[step] + 1
+    final_list_of_materials = [final_list_of_wood, final_list_of_brick, final_list_of_iron]
+
+    return time, final_list_of_materials
 
 
 def generate_first_solution():
     """generuje pierwsze rozwiązanie, taka forma żeby było że ten ratusz jest pierwszy zawsze """
 
-    first_solution = [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5]
+    first_solution = [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5]
     return first_solution
 
 def is_solution_acceptable(new_solution):
@@ -116,59 +128,84 @@ def tabu_search(first_solution, iterations, tabu_list_size):
 
     solution = first_solution
     tabu_list = []
-    best_time_ever = generate_solution_time(solution)
+    best_time_ever = generate_solution_time(solution)[0]
     best_solution_ever = solution
     count = 0
+    time_change_list = []
 
     while count <= iterations:
-
-        #print(str(count) + "---")
         available_solutions, changing_pairs_list = create_new__rand_solutionsList(best_solution_ever, 5)
         best_solution_index = 0
-        #print(available_solutions)
+
         if len(available_solutions) < 1:
             print("bum")
             continue
-        #print(available_solutions)
+
         best_solution = available_solutions[0]
-        best_solution_time = generate_solution_time(best_solution)
-        forbidden_solution_list = []
+        best_solution_time = generate_solution_time(best_solution)[0]
 
         for i in range(1, len(available_solutions)): # zaczynamy od 1 bo rozwiazanie z indexem zerowym jest punktem wyjscia
             current_solution = available_solutions[i]
-            if generate_solution_time(current_solution) < best_solution_time:
+            if generate_solution_time(current_solution)[0] < best_solution_time:
                 best_solution = current_solution
-                best_solution_time = generate_solution_time(current_solution)
+                best_solution_time = generate_solution_time(current_solution)[0]
                 best_solution_index = i
 
-        found = False
-        while found == False:
+        if changing_pairs_list[best_solution_index] not in tabu_list:
+            tabu_list.append(changing_pairs_list[best_solution_index])
+            if best_solution_time < best_time_ever:
+                best_time_ever = best_solution_time
+                best_solution_ever = best_solution
 
-            if changing_pairs_list[best_solution_index] not in tabu_list:
-                tabu_list.append(changing_pairs_list[best_solution_index])
-                found = True
-                if best_solution_time < best_time_ever:
-                    best_time_ever = best_solution_time
-                    best_solution_ever = best_solution
-
-            else:
-                forbidden_solution_list.append(best_solution)
-                for i in range(1, len(available_solutions)):
-                    current_solution = available_solutions[i]
-                    if generate_solution_time(current_solution) < best_solution_time and current_solution not in forbidden_solution_list:
-                        best_solution = current_solution
-                        best_solution_time = generate_solution_time(current_solution)
-                        best_solution_index = i
+        time_change_list.append(generate_solution_time(best_solution)[0])
 
         if len(tabu_list) >= tabu_list_size:
             tabu_list.pop(0)
 
         count = count + 1
-
-        print(best_time_ever)
         print(count)
+        #print(best_time_ever)
+        #print(count)
+
+    best_materials_state = generate_solution_time(best_solution_ever)[1]
+    #print(best_materials_state)
+    '''
+    plt.plot(range(0, len(best_materials_state[0])), best_materials_state[0], '.')
+    plt.show()
+    plt.plot(range(0, len(best_materials_state[1])), best_materials_state[1], '.')
+    plt.show()
+    plt.plot(range(0, len(best_materials_state[2])), best_materials_state[2], '.')
+    plt.show()
+    '''
+    #print(time_change_list)
+    #plt.plot(range(0, len(time_change_list)), time_change_list)
+    #plt.show()
 
     return best_solution_ever, best_time_ever
+
+"----------------------------------------------------------------------------------------------"
+
+
+def generate_buildings_levels_plot(solution, building: int):
+    plot_list = []
+    current_level = 1
+    for elem in solution:
+        plot_list.append(current_level)
+        if elem == building:
+            current_level += 1
+
+    #print(plot_list)
+    #plt.plot(range(0, len(plot_list)), plot_list)
+    #plt.show()
+    return plot_list
+
+"----------------------------------------------------------------------------------------------"
+
+def generate_random_solution(max_level: int):
+    iterations = max_level * 6
+    solution = []
+    for elem in solution:
+        i = random()
 
 "----------------------------------------------------------------------------------------------"
 
