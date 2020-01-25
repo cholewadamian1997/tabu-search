@@ -26,7 +26,30 @@ class Neighborhood:
 
     """
     def __init__(self):
-        self.first_solution = [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5]
+        self.first_solution = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                               2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                               5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+
+        """
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                               2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                               5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+
+        """
+        '''[0, 0, 0, 0, 0, 0,
+                               1, 1, 1, 1, 1, 1,
+                               2, 2, 2, 2, 2, 2,
+                               3, 3, 3, 3, 3, 3,
+                               4, 4, 4, 4, 4, 4,
+                               5, 5, 5, 5, 5, 5,]'''
+
+
         self.neighborhood = list()
         self.changed_elements = list()
 
@@ -39,8 +62,9 @@ class Neighborhood:
             # draw an indexes for swapping
             first = random.randrange(len(solution))
             second = random.randrange(len(solution))
-            while first == second:
+            while first >= second:
                 first = random.randrange(len(solution))
+                second = random.randrange(len(solution))
 
             # swapping two elem
             temp_solution = copy.copy(solution)
