@@ -1,6 +1,7 @@
 import numpy as np
 from data import ratusz, spichlerz, tartak, cegielnia, huta, zagroda, maximum_population
 from data import calculate_time_requirements
+import copy
 
 # importing game rules
 materials_requirements = np.array([ratusz, spichlerz, tartak, cegielnia, huta, zagroda])
@@ -26,19 +27,16 @@ def calculate_filling_time(vector_of_materials, vector_of_requirements, state_of
     return final_time
 
 
-def generate_solution_time(solution):
-    """
-
-    :param solution:
-    :return:
-    """
+def generate_solution_time(solution) -> int:
 
     current_state_of_buildings = [1, 1, 1, 1, 1, 1]
     current_state_of_materials = [100, 100, 100]
     time = 0
 
-    # step to liczba odpowiadająca jakiemuś budynkowi (np 3) (index wektora stanu)
-    for step in solution:
+    final_list_of_wood = []
+    final_list_of_brick = []
+    final_list_of_iron = []
+    for step in solution: #step to liczba odpowiadająca jakiemuś budynkowi (np 3) (index wektora stanu)
 
         current_number_of_workers = 0
         for i in range(len(current_state_of_buildings)):
@@ -67,6 +65,11 @@ def generate_solution_time(solution):
 
             time = time + filling_time
 
+        temp_materials = copy.copy(current_state_of_materials)
+        final_list_of_wood.append(temp_materials[0])
+        final_list_of_brick.append(temp_materials[1])
+        final_list_of_iron.append(temp_materials[2])
+
         current_state_of_materials = np.subtract(current_state_of_materials, materials_requirements[step][current_state_of_buildings[step]][:3])
 
         for i in range(len(current_state_of_materials)): #Dodawanie materiałów
@@ -74,6 +77,21 @@ def generate_solution_time(solution):
             #nie wiem w jakiej formie mamy zapisane dane dot czasu budowy więc jest na razie roboczo
 
 
-        current_state_of_buildings[step] = current_state_of_buildings[step] + 1
 
-    return time
+        current_state_of_buildings[step] = current_state_of_buildings[step] + 1
+    final_list_of_materials = [final_list_of_wood, final_list_of_brick, final_list_of_iron]
+
+    return time, final_list_of_materials
+
+
+def generate_buildings_levels_plot(solution, building: int):
+    plot_list = []
+    current_level = 1
+    for elem in solution:
+        plot_list.append(current_level)
+        if elem == building:
+            current_level += 1
+
+    return plot_list
+
+
