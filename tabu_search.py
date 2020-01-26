@@ -21,10 +21,10 @@ def tabu_search(solution, neighbourhood, iterations, tabu_list_size, neighbourho
     count = 0
     while count <= iterations:
         available_solutions, changing_pairs_list = neighbourhood.generate_new_neighbourhood(solution=final_best_solution, neighbourhood_size=neighbourhood_size)
+        best_solution_index = 0
         if len(available_solutions) < 1:
             continue
-
-        best_solution_index = 0
+            
         best_solution = available_solutions[0]
         best_solution_time = generate_solution_time(best_solution)[0]
 
