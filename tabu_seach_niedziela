@@ -1,0 +1,53 @@
+def tabu_search(first_solution, iterations, tabu_list_size):
+
+    solution = first_solution
+    tabu_list = []
+    best_time_ever = generate_solution_time(solution)[0]
+    best_solution_ever = solution
+    count = 0
+    time_change_list = []
+
+    while count <= iterations:
+        available_solutions, changing_pairs_list = create_new__rand_solutionsList(best_solution_ever, 5)
+        best_solution_index = 0
+
+        if len(available_solutions) < 1:
+            print("bum")
+            continue
+
+        best_solution = None
+        best_solution_time = generate_solution_time(available_solutions[0])[0]
+
+        # checking if next solution form neighbourhood is better than current best solution
+        # starting from index=1 because index=0 is our first solution by default
+        for i in range(0, len(available_solutions)):
+            current_solution = available_solutions[i]
+            current_solution_time = generate_solution_time(current_solution)[0]
+            if current_solution_time <= best_solution_time and (current_solution[changing_pairs_list[i][0]],
+                                                               current_solution[changing_pairs_list[i][1]] == [5, 2] or
+                                                               current_solution[changing_pairs_list[i][0]],
+                                                               current_solution[changing_pairs_list[i][1]] == [5, 3] or
+                                                               current_solution[changing_pairs_list[i][0]],
+                                                               current_solution[changing_pairs_list[i][1]] == [5, 4]):
+                # if not (changing_pairs_list[i] == [2, 5] or changing_pairs_list[i] == [3, 5] or changing_pairs_list[i] == [4, 5]) or ((changing_pairs_list[i] == [2, 5] or changing_pairs_list[i] == [3, 5] or changing_pairs_list[i] == [4, 5]) and recent_bests_time.check_progress(best_solution_time, time_const=50)):
+                best_solution = current_solution
+                best_solution_time = current_solution_time
+                best_solution_index = i
+
+        if best_solution is None:
+            continue
+
+        if changing_pairs_list[best_solution_index] not in tabu_list:
+            tabu_list.append(changing_pairs_list[best_solution_index])
+            if best_solution_time < best_time_ever:
+                best_time_ever = best_solution_time
+                best_solution_ever = best_solution
+
+        time_change_list.append(generate_solution_time(best_solution)[0])
+
+        if len(tabu_list) >= tabu_list_size:
+            tabu_list.pop(0)
+
+        count = count + 1
+
+    return best_solution_ever, best_time_ever
